@@ -1,0 +1,57 @@
+spring:
+  shardingsphere:
+    mode:
+      # 内存模式 元数据存储方式：内存，单机Standalone，集群Cluster
+      type: Memory
+    props:
+      # 打印sql
+      sql-show: true
+    datasource:
+      # 配置数据源，名字与下面对应
+      names: master,slave0,slave1,slave2
+      # 配置写数据源
+      master:
+        type: com.zaxxer.hikari.HikariDataSource
+        driver: com.mysql.jdbc.Driver
+        jdbc-url: jdbc:mysql://localhost:3306/sharding_sphere?autoReconnect=true&allowMultiQueries=true&useUnicode=true&characterEncoding=UTF8&useSSL=false&zeroDateTimeBehavior=convertToNull&serverTimezone=Asia/Shanghai
+        username: root
+        password: 123456
+      slave0:
+        type: com.zaxxer.hikari.HikariDataSource
+        driver: com.mysql.jdbc.Driver
+        jdbc-url: jdbc:mysql://localhost:3307/sharding_sphere?autoReconnect=true&allowMultiQueries=true&useUnicode=true&characterEncoding=UTF8&useSSL=false&zeroDateTimeBehavior=convertToNull&serverTimezone=Asia/Shanghai
+        username: root
+        password: 123456
+      slave1:
+        type: com.zaxxer.hikari.HikariDataSource
+        driver: com.mysql.jdbc.Driver
+        jdbc-url: jdbc:mysql://localhost:3308/sharding_sphere?autoReconnect=true&allowMultiQueries=true&useUnicode=true&characterEncoding=UTF8&useSSL=false&zeroDateTimeBehavior=convertToNull&serverTimezone=Asia/Shanghai
+        username: root
+        password: 123456
+      slave2:
+        type: com.zaxxer.hikari.HikariDataSource
+        driver: com.mysql.jdbc.Driver
+        jdbc-url: jdbc:mysql://localhost:3309/sharding_sphere?autoReconnect=true&allowMultiQueries=true&useUnicode=true&characterEncoding=UTF8&useSSL=false&zeroDateTimeBehavior=convertToNull&serverTimezone=Asia/Shanghai
+        username: root
+        password: 123456
+    rules:
+      # 读写分离
+      readwrite-splitting:
+        data-sources:
+          # 逻辑数据源名称自定义
+          readwriteSplitting:
+            # 采用的轮询算法
+            load-balancer-name: round-robin
+            props:
+              # 写数据源的名字
+              write-data-source-name: master
+              # 读数据源的名字
+              read-data-source-names: slave0,slave1,slave2
+            # 读写分离类型，如: Static，Dynamic
+            type: Static
+        load-balancers:
+          # 负载均衡算法自定已名字
+          round-robin:
+            # 轮询算法：ROUND_ROBIN，随机访问算法：RANDOM，权重算法：WEIGHT
+            # https://shardingsphere.apache.org/document/current/cn/user-manual/common-config/builtin-algorithm/load-balance/
+            type: ROUND_ROBIN

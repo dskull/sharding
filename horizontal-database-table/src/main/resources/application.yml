@@ -1,0 +1,58 @@
+spring:
+  shardingsphere:
+    mode:
+      # 内存模式 元数据存储方式：内存，单机Standalone，集群Cluster
+      type: Memory
+    props:
+      # 打印sql
+      sql-show: true
+    datasource:
+      # 配置数据源，名字与下面对应
+      names: order0,order1
+      # 配置写数据源
+      order0:
+        type: com.zaxxer.hikari.HikariDataSource
+        driver: com.mysql.jdbc.Driver
+        jdbc-url: jdbc:mysql://localhost:3312/sharding_sphere?autoReconnect=true&allowMultiQueries=true&useUnicode=true&characterEncoding=UTF8&useSSL=false&zeroDateTimeBehavior=convertToNull&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+        username: root
+        password: 123456
+      order1:
+        type: com.zaxxer.hikari.HikariDataSource
+        driver: com.mysql.jdbc.Driver
+        jdbc-url: jdbc:mysql://localhost:3313/sharding_sphere?autoReconnect=true&allowMultiQueries=true&useUnicode=true&characterEncoding=UTF8&useSSL=false&zeroDateTimeBehavior=convertToNull&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+        username: root
+        password: 123456
+    rules:
+      sharding:
+        binding-tables[0]: t_order,t_order_item
+        tables:
+          # 水平分库
+          t_order:
+            actual-data-nodes: order$->{0..1}.t_order$->{0..1}
+            database-strategy:
+              standard:
+                sharding-column: user_id
+                sharding-algorithm-name: alg_inline_userid
+            table-strategy:
+              standard:
+                sharding-column: order_no
+                sharding-algorithm-name: alg_hash_mod
+          t_order_item:
+            actual-data-nodes: order$->{0..1}.t_order_item$->{0..1}
+            database-strategy:
+              standard:
+                sharding-column: user_id
+                sharding-algorithm-name: alg_inline_userid
+            table-strategy:
+              standard:
+                sharding-column: order_no
+                sharding-algorithm-name: alg_hash_mod
+        sharding-algorithms:
+          alg_hash_mod:
+            type: HASH_MOD
+            props:
+              sharding-count: 2
+          alg_inline_userid:
+            type: INLINE
+            props:
+              algorithm-expression: order$->{user_id % 2}
